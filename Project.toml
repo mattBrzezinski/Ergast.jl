@@ -2,3 +2,7 @@ name = "Ergast"
 uuid = "7ed03099-e63f-46d1-9c19-cf5fecdb8792"
 license = "MIT"
 version = "0.0.1"
+
+[deps]
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+julia = "1.6"
