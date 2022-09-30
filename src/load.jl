@@ -1,6 +1,6 @@
 const ARTIFACT_TOML = Ref(joinpath(@__DIR__, "..", "Artifacts.toml"))
 
-function download_dataset()
+function download_dataset(; force=true)
     ergast_hash = artifact_hash("ergast", ARTIFACT_TOML[])
     local_filename = "ergast.zip"
 
@@ -13,12 +13,18 @@ function download_dataset()
         bind_artifact!(ARTIFACT_TOML[], "ergast", ergast_hash)
     end
 
-    return joinpath(artifact_path(ergast_hash), local_filename)
+    art_path = artifact_path(ergast_hash)
+
+    # Check to see if we have unzipped the archive
+    extract_files = readdir(artifact"ergast")
+    filter!(f -> !endswith(f, ".zip"), extract_files)
+
+    if isempty(extract_files) || force
+        run(Cmd(["unzip", "-f", joinpath(art_path, local_filename), "-d", art_path]))
+    end
 end
 
-function load_dataset()
-    ds = download_dataset()
-    zf = ZipFile.Reader(ds)
-
-    return Dict(f.name => f for f in zf.files)
+function get_dataset(ds::Dataset)
+    fn = filename(ds)
+    return CSV.read(joinpath(artifact"ergast", fn), DataFrame)
 end
