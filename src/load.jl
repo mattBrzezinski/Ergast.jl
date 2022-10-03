@@ -1,26 +1,25 @@
-const ARTIFACT_TOML = Ref(joinpath(@__DIR__, "..", "Artifacts.toml"))
+"""
+    download_dataset(; force=false)
 
-function download_dataset(; force=true)
-    ergast_hash = artifact_hash("ergast", ARTIFACT_TOML[])
-    local_filename = "ergast.zip"
+Download Ergast dataset on __init__(), or if user manually calls the function passing force=true
 
-    if isnothing(ergast_hash) || !artifact_exists(ergast_hash)
-        ergast_hash = create_artifact() do artifact_dir
-            ergast_url = "http://ergast.com/downloads/f1db_csv.zip"
-            download(ergast_url, joinpath(artifact_dir, local_filename))
-        end
+# Keywords
+- `force=false`: Force download and extract the dataset
+"""
+function download_dataset(; force=false)
+    fname = joinpath(DOWNLOAD_CACHE[], "ergast.zip")
+    url = "http://ergast.com/downloads/f1db_csv.zip"
 
-        bind_artifact!(ARTIFACT_TOML[], "ergast", ergast_hash)
+    if !isfile(fname) || force
+        download(url, fname)
     end
 
-    art_path = artifact_path(ergast_hash)
-
     # Check to see if we have unzipped the archive
-    extract_files = readdir(artifact"ergast")
+    extract_files = readdir(DOWNLOAD_CACHE[])
     filter!(f -> !endswith(f, ".zip"), extract_files)
 
     if isempty(extract_files) || force
-        run(Cmd(["unzip", "-f", joinpath(art_path, local_filename), "-d", art_path]))
+        run(Cmd(["unzip", fname, "-d", DOWNLOAD_CACHE[]]))
     end
 end
 
@@ -37,5 +36,5 @@ Retrieve a specific dataset
 """
 function get_dataset(ds::Dataset)
     fn = filename(ds)
-    return CSV.read(joinpath(artifact"ergast", fn), DataFrame)
+    return CSV.read(joinpath(DOWNLOAD_CACHE[], fn), DataFrame)
 end
