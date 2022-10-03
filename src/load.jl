@@ -24,6 +24,17 @@ function download_dataset(; force=true)
     end
 end
 
+"""
+    get_dataset(ds::Dataset)
+
+Retrieve a specific dataset
+
+# Arguments
+- `ds::Dataset`: Dataset you want to retrieve
+
+# Returns
+- `DataFrame`: Containing all the data
+"""
 function get_dataset(ds::Dataset)
     fn = filename(ds)
     return CSV.read(joinpath(artifact"ergast", fn), DataFrame)
